@@ -1,18 +1,17 @@
 # Learning-OpenGL
 
-A simple OpengGL test with GLFW using the code provided by GLFW org on [https://www.glfw.org/docs/latest/quick.html#quick_example](https://www.glfw.org/docs/latest/quick.html#quick_example).
+A study of OpenGL with Glad and GLFW following the steps on [OpenGL Course](https://www.youtube.com/watch?v=45MIykWJ-C4).
 
-To test it simply run in cmd:
+To test it simply go to the root file of the repository and type in the cmd:
 
+>. scripts/envsetup.sh 
 
->cmake -S . -B ./build <br>
->cmake --build ./build
+>config
+
+>build
 
 Once the code is fully compiled just type in cmd:
 
+>run
 
->./build/test
-
-
-This should create a window and render a rotating RGB triangle inside it.  
-To close simply press Escape.
+This should create a window and render a navy-blue background with an orange shape inside it.  

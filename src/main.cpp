@@ -35,7 +35,7 @@ int main() {
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   // Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-  GLFWwindow *window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(800, 800, "Learning...", NULL, NULL);
   // Error check if the window fails to create
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;

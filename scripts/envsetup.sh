@@ -14,5 +14,5 @@ function build
 
 function run
 {
-	./build/cheese
+	./build/Learning...
 }

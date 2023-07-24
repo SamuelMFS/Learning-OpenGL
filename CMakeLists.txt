@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.1)
-project(Chess)
+project(Learning...)
 
 find_package(OpenGL REQUIRED)
 
@@ -11,7 +11,7 @@ add_subdirectory("vendor/glfw" ./build/)
 
 set(GLAD "vendor/glad/include")
 
-add_executable(cheese 
+add_executable(Learning...
                ./src/main.cpp
                ./vendor/glad/src/gl.c
                ./src/EBO.cpp
@@ -20,9 +20,9 @@ add_executable(cheese
                ./src/shaderClass.cpp
                )
 
-target_link_libraries(cheese ${OPENGL_LIBRARIES} glfw)
+target_link_libraries(Learning... ${OPENGL_LIBRARIES} glfw)
 
-target_include_directories(cheese PUBLIC ${GLAD}
+target_include_directories(Learning... PUBLIC ${GLAD}
                                   PUBLIC vendor/glfw/include
                                   PUBLIC vendor/glfw/deps 
                                   PUBLIC ${OPENGL_INCLUDE_DIRS}

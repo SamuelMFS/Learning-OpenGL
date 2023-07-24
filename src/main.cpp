@@ -1,131 +1,98 @@
-#include "main.h"
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#include <glad/gl.h>
+#include <iostream>
+#include <math.h>
 
-static const struct
-{
-    float x, y;
-    float r, g, b;
-} vertices[3] =
-{
-    { -0.6f, -0.4f, 1.f, 0.f, 0.f },
-    {  0.6f, -0.4f, 0.f, 1.f, 0.f },
-    {   0.f,  0.6f, 0.f, 0.f, 1.f }
-};
- 
-static const char* vertex_shader_text =
-"#version 110\n"
-"uniform mat4 MVP;\n"
-"attribute vec3 vCol;\n"
-"attribute vec2 vPos;\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
- 
-static const char* fragment_shader_text =
-"#version 110\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_FragColor = vec4(color, 1.0);\n"
-"}\n";
- 
-static void error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Error: %s\n", description);
-}
- 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
- 
-int main(void)
-{
-    GLFWwindow* window;
-    GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-    GLint mvp_location, vpos_location, vcol_location;
- 
-    glfwSetErrorCallback(error_callback);
- 
-    if (!glfwInit())
-        exit(EXIT_FAILURE);
- 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
- 
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
- 
-    glfwSetKeyCallback(window, key_callback);
- 
-    glfwMakeContextCurrent(window);
-    gladLoadGL();
-    glfwSwapInterval(1);
- 
-    // NOTE: OpenGL error checks have been omitted for brevity
- 
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
- 
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-    glCompileShader(vertex_shader);
- 
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-    glCompileShader(fragment_shader);
- 
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
- 
-    mvp_location = glGetUniformLocation(program, "MVP");
-    vpos_location = glGetAttribLocation(program, "vPos");
-    vcol_location = glGetAttribLocation(program, "vCol");
- 
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(vertices[0]), (void*) 0);
-    glEnableVertexAttribArray(vcol_location);
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertices[0]), (void*) (sizeof(float) * 2));
- 
-    while (!glfwWindowShouldClose(window))
-    {
-        float ratio;
-        int width, height;
-        mat4x4 m, p, mvp;
- 
-        glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float) height;
- 
-        glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT);
- 
-        mat4x4_identity(m);
-        mat4x4_rotate_Z(m, m, (float) glfwGetTime());
-        mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-        mat4x4_mul(mvp, p, m);
- 
-        glUseProgram(program);
-        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
- 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
- 
-    glfwDestroyWindow(window);
- 
+#include "EBO.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "shaderClass.h"
+
+// An array with all the 6 vertices that makes the 3 triangles
+GLfloat vertices[] = {
+    -0.5f,  -0.5f * float(sqrt(3)) / 3,   0.0f, 0.8f, 0.3f,  0.02f,
+    0.5f,   -0.5f * float(sqrt(3)) / 3,   0.0f, 0.8f, 0.3f,  0.02f,
+    0.0f,   0.5f * float(sqrt(3)) / 1.5f, 0.0f, 1.0f, 0.6f,  0.32f,
+    -0.25f, 0.5f * float(sqrt(3)) / 6,    0.0f, 0.9f, 0.45f, 0.17f,
+    0.25f,  0.5f * float(sqrt(3)) / 6,    0.0f, 0.9f, 0.45f, 0.17f,
+    0.0f,   -0.5f * float(sqrt(3)) / 3,   0.0f, 0.8f, 0.3f,  0.2f};
+
+// the indices that tells the app which vertices makes which triangles
+GLuint indices[] = {0, 5, 4, 1, 4, 3, 2, 3, 5};
+
+int main() {
+  // Initialize GLFW
+  glfwInit();
+
+  // Tell GLFW what version of OpenGL we are using
+  // In this case we are using OpenGL 3.3
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  // Tell GLFW we are using the CORE profile
+  // So that means we only have the modern functions
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+  // Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
+  GLFWwindow *window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
+  // Error check if the window fails to create
+  if (window == NULL) {
+    std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
-    exit(EXIT_SUCCESS);
+    return -1;
+  }
+  // Introduce the window into the current context
+  glfwMakeContextCurrent(window);
+
+  // Load GLAD so it configures OpenGL
+  gladLoadGL(glfwGetProcAddress);
+  // Specify the viewport of OpenGL in the Window
+  // In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
+  glViewport(0, 0, 800, 800);
+
+  Shader shaderProgram("./vendor/shaders/default.vert",
+                       "./vendor/shaders/default.frag");
+
+  VAO VAO1;
+  VAO1.Bind();
+
+  VBO VBO1(vertices, sizeof(vertices));
+  EBO EBO1(indices, sizeof(indices));
+
+  VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void *)0);
+  VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float),
+                  (void *)(3 * sizeof(float)));
+  VAO1.Unbind();
+  VBO1.Unbind();
+  EBO1.Unbind();
+
+  // Main while loop
+  while (!glfwWindowShouldClose(window)) {
+    // Specify the color of the background
+    glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+    // Clean the back buffer and assign the new color to it
+    glClear(GL_COLOR_BUFFER_BIT);
+    // Tell OpenGL which Shader Program we want to use
+    shaderProgram.Activate();
+    // Bind the VAO so OpenGL knows to use it
+    VAO1.Bind();
+    // Draw the triangle using the GL_TRIANGLES primitive
+    glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+    // Swap the back buffer with the front buffer
+    glfwSwapBuffers(window);
+    // Take care of all GLFW events
+    glfwPollEvents();
+  }
+
+  // Delete all the objects we've created
+  VAO1.Delete();
+  VBO1.Delete();
+  EBO1.Delete();
+  shaderProgram.Delete();
+  // Delete window before ending the program
+  glfwDestroyWindow(window);
+  // Terminate GLFW before ending the program
+  glfwTerminate();
+  return 0;
 }
